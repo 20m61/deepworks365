@@ -6,11 +6,20 @@ import type { LedgerTableEntity, TableClientLike, TxAction } from '@oip/decision
 // SDK セマンティクス整合は後続の Azurite 統合テストで検証（本 slice ではオフライン非対象の委譲 seam）。
 export function createAzureTableClient(table: string, env: NodeJS.ProcessEnv): TableClientLike {
   const cs = env.LEDGER_TABLE_CONNECTION_STRING;
+  const endpoint = env.LEDGER_TABLE_ENDPOINT;
+  if (!cs && !endpoint?.trim()) {
+    throw new Error('LEDGER_TABLE_ENDPOINT or LEDGER_TABLE_CONNECTION_STRING is required for the table ledger');
+  }
   const client = cs
     ? TableClient.fromConnectionString(cs, table)
-    : new TableClient(env.LEDGER_TABLE_ENDPOINT ?? '', table, new DefaultAzureCredential());
+    : new TableClient(endpoint ?? '', table, new DefaultAzureCredential());
 
-  const toSdk = (e: LedgerTableEntity): TableEntity => ({ ...e }) as unknown as TableEntity;
+  // etag は楽観的並行制御用にトランザクションオプション ({ etag: a.etag }) で個別に渡すため、
+  // SDK へ永続化するエンティティ本体からは除去する (二重・不要プロパティの混入防止)。
+  const toSdk = (e: LedgerTableEntity): TableEntity => {
+    const { etag: _etag, ...rest } = e;
+    return rest as unknown as TableEntity;
+  };
   const fromSdk = (e: Record<string, unknown>): LedgerTableEntity => e as unknown as LedgerTableEntity;
 
   return {

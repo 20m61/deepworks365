@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractApprover, parseApproveBody } from '../src/functions/decisions.js';
+import { approveErrorStatus, extractApprover, parseApproveBody } from '../src/functions/decisions.js';
 
 describe('extractApprover', () => {
   it('Easy Auth の x-ms-client-principal-id を承認者IDへ束縛する', () => {
@@ -28,5 +28,23 @@ describe('parseApproveBody', () => {
   });
   it('body が object でなければ拒否', () => {
     expect(parseApproveBody(null).ok).toBe(false);
+  });
+});
+
+describe('approveErrorStatus', () => {
+  it('"not found" を含むメッセージは 404', () => {
+    expect(approveErrorStatus('ledger entry not found: e1')).toBe(404);
+  });
+  it('head 競合 (concurrent supersede) は 409', () => {
+    expect(approveErrorStatus('entry e1 is no longer head (concurrent supersede)')).toBe(409);
+  });
+  it('繰り上がり済みの日本語競合メッセージは 409', () => {
+    expect(approveErrorStatus('entry e1 は既に新版へ繰り上がっている: e2')).toBe(409);
+  });
+  it('承認対象ではない (issue not approvable) は 409', () => {
+    expect(approveErrorStatus('issue は承認対象ではない')).toBe(409);
+  });
+  it('未知のインフラ障害は 500 (409に丸めない)', () => {
+    expect(approveErrorStatus('ECONNRESET')).toBe(500);
   });
 });
