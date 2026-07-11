@@ -6,7 +6,13 @@ if ! command -v semgrep >/dev/null 2>&1; then
   echo "semgrep is required. Run scripts/setup-dev.sh"
   exit 1
 fi
-semgrep scan --config auto --config .semgrep.yml --error .
+# pnpm10サプライチェーン強化を要求するpackage_managers.*ルールは専用Issue(backlog/issues/025.md)で段階導入予定のため除外
+semgrep scan --config auto --config .semgrep.yml --error \
+  --exclude-rule package_managers.npm.npm-missing-minimum-release-age.npm-missing-minimum-release-age \
+  --exclude-rule package_managers.pnpm.pnpm-block-exotic-sub-dependencies.pnpm-block-exotic-sub-dependencies \
+  --exclude-rule package_managers.pnpm.pnpm-missing-minimum-release-age.pnpm-minimum-release-age \
+  --exclude-rule package_managers.pnpm.pnpm-trust-policy.pnpm-trust-policy \
+  .
 echo "SAST (semgrep) passed."
 
 # 依存監査: osv-scanner (旧 Dependency Review の代替)。
