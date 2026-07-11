@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-REPO="${GITHUB_OWNER:-20m61}/${GITHUB_REPO:-organizational-intelligence-platform}"
+REPO="${GITHUB_OWNER:-20m61}/${GITHUB_REPO:-deep-work}"
 labels=(
   'status:triage|d4c5f9|未整理'
   'status:ready|0e8a16|着手可能'
@@ -27,4 +27,4 @@ labels=(
 for spec in "${labels[@]}"; do
   IFS='|' read -r name color description <<<"$spec"
   gh label create "$name" --repo "$REPO" --color "$color" --description "$description" --force
- done
+done
