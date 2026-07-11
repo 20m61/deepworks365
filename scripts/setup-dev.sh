@@ -14,9 +14,18 @@ elif command -v python3 >/dev/null 2>&1; then
   python3 -m pip install --user semgrep pre-commit || true
 fi
 
-# osv-scanner (依存監査 / 旧 Dependency Review の代替)。brew があれば導入。
-if ! command -v osv-scanner >/dev/null 2>&1 && command -v brew >/dev/null 2>&1; then
-  brew install osv-scanner || true
+# osv-scanner (依存監査 / 旧 Dependency Review の代替)。
+# go install を優先 (macOS 13 Ventura は brew bottle が無くソースビルドになるため)。
+if ! command -v osv-scanner >/dev/null 2>&1; then
+  if command -v go >/dev/null 2>&1; then
+    GOBIN="${GOBIN:-$HOME/go/bin}" go install github.com/google/osv-scanner/v2/cmd/osv-scanner@latest || true
+    # GOBIN が PATH に無い場合に備え ~/.local/bin へリンクする。
+    if [ -x "$HOME/go/bin/osv-scanner" ] && [ -d "$HOME/.local/bin" ]; then
+      ln -sf "$HOME/go/bin/osv-scanner" "$HOME/.local/bin/osv-scanner"
+    fi
+  elif command -v brew >/dev/null 2>&1; then
+    brew install osv-scanner || true
+  fi
 fi
 
 # git フックを登録 (pre-commit + pre-push)。
