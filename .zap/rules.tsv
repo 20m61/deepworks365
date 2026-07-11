@@ -1,0 +1,10 @@
+# ZAP Baseline rule configuration
+# rule-id	ACTION	(description)
+10010	FAIL	(Cookie No HttpOnly Flag)
+10011	FAIL	(Cookie Without Secure Flag)
+10015	WARN	(Cache-control header)
+10020	FAIL	(X-Frame-Options / frame-ancestors)
+10021	FAIL	(X-Content-Type-Options Missing)
+10023	FAIL	(Debug Error Disclosure)
+10040	FAIL	(Mixed Content)
+10202	FAIL	(Absence of Anti-CSRF Tokens)

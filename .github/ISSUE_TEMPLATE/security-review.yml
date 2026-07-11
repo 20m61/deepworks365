@@ -1,0 +1,21 @@
+name: Security review
+description: セキュリティ・プライバシー設計レビュー
+title: "[Security] "
+labels: ["type:security", "status:triage"]
+body:
+  - type: textarea
+    id: change
+    attributes: { label: 対象変更 }
+    validations: { required: true }
+  - type: textarea
+    id: data
+    attributes: { label: データ分類・保存・外部送信 }
+  - type: textarea
+    id: identity
+    attributes: { label: ID・ロール・Graph権限 }
+  - type: textarea
+    id: threats
+    attributes: { label: 想定脅威と緩和策 }
+  - type: textarea
+    id: evidence
+    attributes: { label: テスト・レビュー証跡 }

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+OWNER="${GITHUB_OWNER:-20m61}"
+REPO_NAME="${GITHUB_REPO:-organizational-intelligence-platform}"
+REPO="$OWNER/$REPO_NAME"
+DESCRIPTION="Microsoft 365 / Entra ID / Azure based organizational intelligence and decision platform"
+
+gh auth status
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git init -b main
+fi
+
+git add .
+if ! git diff --cached --quiet; then
+  git commit -m "chore: initialize organizational intelligence platform"
+fi
+
+if ! gh repo view "$REPO" >/dev/null 2>&1; then
+  gh repo create "$REPO" --public --description "$DESCRIPTION" --source . --remote origin --push
+else
+  git remote get-url origin >/dev/null 2>&1 || git remote add origin "https://github.com/$REPO.git"
+  git push -u origin main
+fi
+
+GITHUB_OWNER="$OWNER" GITHUB_REPO="$REPO_NAME" ./scripts/create-labels.sh
+GITHUB_OWNER="$OWNER" ./scripts/create-project.sh
+GITHUB_OWNER="$OWNER" GITHUB_REPO="$REPO_NAME" ./scripts/create-issues.sh
+
+echo "Repository: https://github.com/$REPO"
+echo "Project: https://github.com/users/$OWNER/projects"

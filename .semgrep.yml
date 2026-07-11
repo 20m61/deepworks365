@@ -1,0 +1,25 @@
+rules:
+  - id: no-eval-javascript
+    languages: [javascript, typescript]
+    message: eval() is prohibited. Use explicit parsing or a safe interpreter.
+    severity: ERROR
+    pattern: eval(...)
+    metadata:
+      category: security
+      cwe: CWE-95
+  - id: no-child-process-shell-true
+    languages: [javascript, typescript]
+    message: Avoid shell:true with child_process. Use argument arrays and allowlists.
+    severity: ERROR
+    pattern: $CP.$FUNC(..., { ..., shell: true, ... })
+  - id: no-hardcoded-azure-credential
+    languages: [generic]
+    message: Possible Azure credential or connection string committed to source.
+    severity: ERROR
+    patterns:
+      - pattern-regex: '(?i)(DefaultEndpointsProtocol|AccountKey|SharedAccessKey)=[^\s]+'
+  - id: no-untrusted-agent-context-in-shell
+    languages: [yaml]
+    message: Do not interpolate untrusted GitHub event text directly into shell commands.
+    severity: ERROR
+    pattern-regex: '\$\{\{\s*github\.event\.(issue|comment|pull_request)\.(body|title)\s*\}\}'

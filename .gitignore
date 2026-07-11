@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+CLAUDE.local.md
+.claude/settings.local.json
+node_modules/
+.pnpm-store/
+coverage/
+dist/
+.next/
+.azure/
+.venv/
+__pycache__/
+*.log
+*.sarif
+zap-report.*
+.DS_Store

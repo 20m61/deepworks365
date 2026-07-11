@@ -1,0 +1,22 @@
+name: Bug report
+description: 再現可能な不具合を報告します
+title: "[Bug] "
+labels: ["type:bug", "status:triage"]
+body:
+  - type: textarea
+    id: observed
+    attributes: { label: 発生したこと }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: 期待する動作 }
+    validations: { required: true }
+  - type: textarea
+    id: reproduce
+    attributes: { label: 再現手順 }
+  - type: textarea
+    id: impact
+    attributes: { label: 利用者・業務への影響 }
+  - type: textarea
+    id: trace
+    attributes: { label: Trace ID・時刻・環境（秘密情報は除く） }

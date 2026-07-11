@@ -1,0 +1,23 @@
+{
+  "name": "OIP Development",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-bicep",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "redhat.vscode-yaml",
+        "DavidAnson.vscode-markdownlint",
+        "semgrep.semgrep"
+      ]
+    }
+  },
+  "postCreateCommand": "bash scripts/setup-dev.sh",
+  "remoteUser": "node"
+}

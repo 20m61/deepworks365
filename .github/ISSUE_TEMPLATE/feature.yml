@@ -1,0 +1,32 @@
+name: Feature request
+description: 業務課題と期待する成果から機能を提案します
+title: "[Feature] "
+labels: ["type:feature", "status:triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 解決したい業務課題
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 期待する成果・利用者価値
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 現在の回避策と発生頻度
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受入条件
+  - type: dropdown
+    id: risk
+    attributes:
+      label: データ・権限・対外影響
+      options: [なし, 低, 中, 高, 不明]
+    validations:
+      required: true

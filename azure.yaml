@@ -1,0 +1,6 @@
+name: organizational-intelligence-platform
+metadata:
+  template: organizational-intelligence-platform@0.1.0
+infra:
+  provider: bicep
+  path: infra
