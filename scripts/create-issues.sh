@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 OWNER="${GITHUB_OWNER:-20m61}"
-REPO_NAME="${GITHUB_REPO:-organizational-intelligence-platform}"
+REPO_NAME="${GITHUB_REPO:-deepworks365}"
 REPO="$OWNER/$REPO_NAME"
 PROJECT_TITLE="${GITHUB_PROJECT_TITLE:-OIP Delivery}"
 DRY_RUN="${DRY_RUN:-0}"
