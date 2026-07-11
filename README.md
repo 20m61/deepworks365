@@ -65,7 +65,7 @@ GitHub CLIが認証済みの端末で実行します。
 
 ```bash
 GITHUB_OWNER=20m61 \
-GITHUB_REPO=organizational-intelligence-platform \
+GITHUB_REPO=deep-work \
 ./scripts/bootstrap-github.sh
 ```
 
