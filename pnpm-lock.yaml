@@ -16,6 +16,9 @@ importers:
       '@azure/monitor-opentelemetry':
         specifier: ^1.8.0
         version: 1.18.2
+      '@oip/decision':
+        specifier: workspace:*
+        version: link:../../packages/decision
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

@@ -1,4 +1,6 @@
 import type { InvocationContext } from '@azure/functions';
+import type { Transcript } from '@oip/decision';
+import { buildDecisionServices } from '../composition.js';
 
 export interface EventEnvelope {
   id: string;
@@ -26,6 +28,15 @@ export function parseEvent(message: unknown): ParseResult {
   return { ok: true, value: { id: m.id, type: m.type, occurredAt } };
 }
 
+// 未信頼な message から Transcript を安全に取り出す (純粋・テスト対象)。
+export function toTranscript(ev: EventEnvelope, message: unknown): Transcript | null {
+  if (ev.type !== 'meeting.ended') return null;
+  const m = message as { transcript?: unknown };
+  const t = m?.transcript as Transcript | undefined;
+  if (!t || typeof t.meetingId !== 'string' || !Array.isArray(t.utterances)) return null;
+  return t;
+}
+
 export async function onEventHandler(
   message: unknown,
   ctx: InvocationContext,
@@ -36,5 +47,11 @@ export async function onEventHandler(
     return; // 検証失敗はログのみで打ち切る
   }
   ctx.log(`event received: ${parsed.value.type} (${parsed.value.id})`);
-  // 業務ロジック(合意/未決/タスク抽出)は B フェーズ (PoC #25)
+  const transcript = toTranscript(parsed.value, message);
+  if (transcript) {
+    // AI は候補抽出まで。決定は人間承認 API 経由でのみ行われる (非交渉ルール2)。
+    const { ingest } = buildDecisionServices();
+    const { entries } = await ingest.ingest(transcript);
+    ctx.log(`ingested ${entries.length} candidates for meeting ${transcript.meetingId}`);
+  }
 }

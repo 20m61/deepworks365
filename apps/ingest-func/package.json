@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@azure/functions": "^4.5.0",
-    "@azure/monitor-opentelemetry": "^1.8.0"
+    "@azure/monitor-opentelemetry": "^1.8.0",
+    "@oip/decision": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

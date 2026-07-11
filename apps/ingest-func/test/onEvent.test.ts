@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseEvent } from '../src/functions/onEvent.js';
+import { parseEvent, toTranscript } from '../src/functions/onEvent.js';
 
 describe('parseEvent', () => {
   it('正常なイベントを解析する', () => {
@@ -20,5 +20,19 @@ describe('parseEvent', () => {
   it('オブジェクト以外は拒否', () => {
     expect(parseEvent('nope').ok).toBe(false);
     expect(parseEvent(null).ok).toBe(false);
+  });
+});
+
+describe('toTranscript', () => {
+  it('meeting.ended + transcript を Transcript に変換', () => {
+    const t = toTranscript(
+      { id: 'e1', type: 'meeting.ended', occurredAt: '' },
+      { transcript: { meetingId: 'm1', utterances: [{ id: 'u1', speaker: 'A', text: '合意: X' }] } },
+    );
+    expect(t?.meetingId).toBe('m1');
+  });
+  it('type違い/transcript無しは null', () => {
+    expect(toTranscript({ id: 'e1', type: 'other', occurredAt: '' }, {})).toBeNull();
+    expect(toTranscript({ id: 'e1', type: 'meeting.ended', occurredAt: '' }, {})).toBeNull();
   });
 });
