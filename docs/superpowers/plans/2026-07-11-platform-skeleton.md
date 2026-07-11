@@ -57,7 +57,7 @@ auto-install-peers=true
   "name": "organizational-intelligence-platform",
   "private": true,
   "packageManager": "pnpm@9.12.0",
-  "engines": { "node": ">=20 <21" },
+  "engines": { "node": ">=20" },
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
