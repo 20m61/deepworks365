@@ -58,7 +58,24 @@ export function createTableLedger(client: TableClientLike, idgen: () => string):
     async append(input: AppendInput): Promise<LedgerEntry> {
       const existing = await client.listByPartition(input.meetingId);
       const entry = buildEntry(existing.map(fromEntity), idgen(), input);
-      await client.createEntity(toEntity(entry));
+      const newEnt = toEntity(entry);
+      if (input.supersedes) {
+        // buildEntry が base の存在を保証済み。
+        const baseEnt = existing.find((e) => e.rowKey === input.supersedes)!;
+        try {
+          await client.submitTransaction([
+            { op: 'create', entity: newEnt },
+            { op: 'update', entity: { ...baseEnt, supersededBy: entry.id }, etag: baseEnt.etag! },
+          ]);
+        } catch (err) {
+          if ((err as { statusCode?: number }).statusCode === 412) {
+            throw new Error(`entry ${input.supersedes} is no longer head (concurrent supersede)`);
+          }
+          throw err;
+        }
+      } else {
+        await client.createEntity(newEnt);
+      }
       return entry;
     },
     async get(id: string): Promise<LedgerEntry | null> {
