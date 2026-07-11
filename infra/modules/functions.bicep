@@ -1,4 +1,6 @@
 @description('環境名 (dev/stg/prod)')
+@minLength(1)
+@maxLength(11)
 param environmentName string
 @description('リージョン')
 param location string
@@ -6,7 +8,9 @@ param location string
 param tags object = {}
 
 var suffix = uniqueString(resourceGroup().id)
-var storageName = toLower('stoip${environmentName}${suffix}')
+// storage account name は24文字上限のため、環境名を6文字に切り詰めて安全域を確保する
+// (stoip[5] + take(environmentName,6)[<=6] + uniqueString[13] = 24以下を保証)
+var storageName = toLower('stoip${take(environmentName, 6)}${suffix}')
 var planName = 'plan-oip-${environmentName}'
 var appName = 'func-oip-${environmentName}-${suffix}'
 var sbName = 'sb-oip-${environmentName}-${suffix}'
@@ -87,6 +91,7 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
         { name: 'SERVICE_BUS_NAMESPACE', value: '${sb.name}.servicebus.windows.net' }
         { name: 'SERVICE_BUS_QUEUE', value: queueName }
         { name: 'ServiceBusConnection__fullyQualifiedNamespace', value: '${sb.name}.servicebus.windows.net' }
+        { name: 'AzureWebJobsStorage__accountName', value: storage.name }
       ]
     }
   }
@@ -95,6 +100,8 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
 // RBAC: Function の Managed Identity にデプロイ storage と Service Bus 受信権限。
 var blobOwnerRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
 var sbReceiverRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
+var storageQueueDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')
+var monitoringMetricsPublisherRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')
 
 resource storageRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(storage.id, site.id, blobOwnerRole)
@@ -106,6 +113,18 @@ resource sbRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(sb.id, site.id, sbReceiverRole)
   scope: sb
   properties: { principalId: site.identity.principalId, roleDefinitionId: sbReceiverRole, principalType: 'ServicePrincipal' }
+}
+
+resource storageQueueRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storage.id, site.id, storageQueueDataContributorRole)
+  scope: storage
+  properties: { principalId: site.identity.principalId, roleDefinitionId: storageQueueDataContributorRole, principalType: 'ServicePrincipal' }
+}
+
+resource metricsPublisherRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(appInsights.id, site.id, monitoringMetricsPublisherRole)
+  scope: appInsights
+  properties: { principalId: site.identity.principalId, roleDefinitionId: monitoringMetricsPublisherRole, principalType: 'ServicePrincipal' }
 }
 
 output functionAppName string = site.name

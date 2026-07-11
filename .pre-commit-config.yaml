@@ -35,7 +35,7 @@ repos:
     hooks:
       - id: shellcheck
 
-  # --- pre-push 段階: 重いセキュリティ検査 ---
+  # --- pre-push 段階: 型チェック・テスト・セキュリティ検査 ---
   - repo: local
     hooks:
       - id: typecheck
