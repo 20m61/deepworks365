@@ -2,6 +2,8 @@ export * from './types.js';
 export * from './ports.js';
 export * from './extract/markerExtractor.js';
 export * from './ledger/inMemoryLedger.js';
+export { createTableLedger } from './ledger/tableLedger.js';
+export type { TableClientLike, LedgerTableEntity, TxAction } from './ledger/tableLedger.js';
 export * from './ledger/jsonFileLedger.js';
 export * from './delivery/fakeDelivery.js';
 export * from './services/ingestMeetingService.js';
