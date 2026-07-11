@@ -39,6 +39,22 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@20.19.43)(yaml@2.9.0)
 
+  packages/decision:
+    dependencies:
+      '@oip/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.7
+        version: 3.2.7(@types/node@20.19.43)(yaml@2.9.0)
+
 packages:
 
   '@azure-rest/core-client@2.7.0':
