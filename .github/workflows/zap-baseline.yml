@@ -12,7 +12,7 @@ jobs:
   zap:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Validate target
         env:
           TARGET_URL: ${{ inputs.target_url }}
@@ -26,7 +26,7 @@ jobs:
           TARGET_URL: ${{ inputs.target_url }}
         run: |
           docker run --rm             -v "$PWD:/zap/wrk/:rw"             ghcr.io/zaproxy/zaproxy:stable             zap-baseline.py -t "$TARGET_URL" -c .zap/rules.tsv             -r zap-report.html -J zap-report.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: zap-baseline-report
