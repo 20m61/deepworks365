@@ -4,3 +4,8 @@ metadata:
 infra:
   provider: bicep
   path: infra
+services:
+  ingest-func:
+    project: apps/ingest-func
+    language: ts
+    host: function
