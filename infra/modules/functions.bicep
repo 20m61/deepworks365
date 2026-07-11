@@ -29,6 +29,16 @@ resource deployContainer 'Microsoft.Storage/storageAccounts/blobServices/contain
   name: '${storage.name}/default/deploymentpackage'
 }
 
+resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2023-05-01' = {
+  parent: storage
+  name: 'default'
+}
+
+resource ledgerTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-05-01' = {
+  parent: tableService
+  name: 'oipledger'
+}
+
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'log-oip-${environmentName}'
   location: location
@@ -92,10 +102,10 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
         { name: 'SERVICE_BUS_QUEUE', value: queueName }
         { name: 'ServiceBusConnection__fullyQualifiedNamespace', value: '${sb.name}.servicebus.windows.net' }
         { name: 'AzureWebJobsStorage__accountName', value: storage.name }
-        // 意思決定台帳の保存先。/home はストレージアカウント裏付け (SSE暗号化・アクセス制御) の
-        // 永続領域。/tmp への平文PII保存を避ける暫定措置 (非交渉ルール10)。
-        // 本番の目標はDB台帳アダプタ (Azure Table/SQL) への移行 — backlog/issues/026.md。
-        { name: 'LEDGER_PATH', value: '/home/data/oip-ledger.jsonl' }
+        // 意思決定台帳の保存先。Azure Table Storage へ移行 (SSE暗号化・アクセス制御・MI認可)。
+        // 台帳アダプタ (backlog/issues/026.md) に対応。
+        { name: 'LEDGER_TABLE', value: ledgerTable.name }
+        { name: 'LEDGER_TABLE_ENDPOINT', value: storage.properties.primaryEndpoints.table }
       ]
     }
   }
@@ -106,6 +116,7 @@ var blobOwnerRole = subscriptionResourceId('Microsoft.Authorization/roleDefiniti
 var sbReceiverRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
 var storageQueueDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')
 var monitoringMetricsPublisherRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')
+var storageTableDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')
 
 resource storageRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(storage.id, site.id, blobOwnerRole)
@@ -129,6 +140,12 @@ resource metricsPublisherRole 'Microsoft.Authorization/roleAssignments@2022-04-0
   name: guid(appInsights.id, site.id, monitoringMetricsPublisherRole)
   scope: appInsights
   properties: { principalId: site.identity.principalId, roleDefinitionId: monitoringMetricsPublisherRole, principalType: 'ServicePrincipal' }
+}
+
+resource storageTableRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storage.id, site.id, storageTableDataContributorRole)
+  scope: storage
+  properties: { principalId: site.identity.principalId, roleDefinitionId: storageTableDataContributorRole, principalType: 'ServicePrincipal' }
 }
 
 output functionAppName string = site.name
