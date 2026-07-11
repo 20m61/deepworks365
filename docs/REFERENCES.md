@@ -6,7 +6,7 @@
 - Claude Code Settings: https://code.claude.com/docs/en/settings
 - Claude Code GitHub Actions: https://code.claude.com/docs/en/github-actions
 - Semgrep Documentation: https://docs.semgrep.dev/
+- pre-commit: https://pre-commit.com/
+- OSV-Scanner: https://google.github.io/osv-scanner/
 - OWASP ZAP Baseline Scan: https://www.zaproxy.org/docs/docker/baseline-scan/
 - OWASP ASVS: https://owasp.org/www-project-application-security-verification-standard/
-- GitHub CodeQL: https://docs.github.com/en/code-security/concepts/code-scanning/codeql/codeql-code-scanning
-- GitHub Dependabot: https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-version-updates
