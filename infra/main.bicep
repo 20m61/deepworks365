@@ -23,5 +23,16 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   tags: commonTags
 }
 
+module functions 'modules/functions.bicep' = {
+  name: 'functions'
+  scope: resourceGroup
+  params: {
+    environmentName: environmentName
+    location: location
+    tags: commonTags
+  }
+}
+
 output resourceGroupName string = resourceGroup.name
 output location string = resourceGroup.location
+output functionAppName string = functions.outputs.functionAppName
