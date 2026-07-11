@@ -11,7 +11,7 @@ rules:
     languages: [javascript, typescript]
     message: Avoid shell:true with child_process. Use argument arrays and allowlists.
     severity: ERROR
-    pattern: $CP.$FUNC(..., { ..., shell: true, ... })
+    pattern: "$CP.$FUNC(..., { ..., shell: true, ... })"
   - id: no-hardcoded-azure-credential
     languages: [generic]
     message: Possible Azure credential or connection string committed to source.
