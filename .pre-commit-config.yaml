@@ -38,6 +38,18 @@ repos:
   # --- pre-push 段階: 重いセキュリティ検査 ---
   - repo: local
     hooks:
+      - id: typecheck
+        name: pnpm typecheck
+        entry: pnpm -r typecheck
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: unit-test
+        name: pnpm test (vitest)
+        entry: pnpm -r test
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
       - id: security-scan
         name: security scan (semgrep + osv-scanner)
         entry: scripts/run-security.sh
