@@ -20,7 +20,10 @@ describe('inMemoryLedger', () => {
   it('supersedes で version が繰り上がる', async () => {
     const led = createInMemoryLedger(counter());
     const v1 = await led.append({ ...base });
-    const v2 = await led.append({ ...base, state: 'approved_decision', supersedes: v1.id });
+    const v2 = await led.append({
+      ...base, state: 'approved_decision', supersedes: v1.id,
+      approval: { approver: 'a', approvedAt: '2026-07-11T00:00:00.000Z', basis: 'x' },
+    });
     expect(v2.version).toBe(2);
     expect(v2.supersedes).toBe('e1');
   });
@@ -29,5 +32,13 @@ describe('inMemoryLedger', () => {
     await led.append({ ...base });
     await led.append({ ...base, meetingId: 'm2' });
     expect((await led.getByMeeting('m1')).length).toBe(1);
+  });
+  it('approved_decision は approval 無しでは拒否 (rule2,4)', async () => {
+    const led = createInMemoryLedger(counter());
+    await expect(led.append({ ...base, state: 'approved_decision' })).rejects.toThrow();
+  });
+  it('存在しない supersedes は拒否 (lineage)', async () => {
+    const led = createInMemoryLedger(counter());
+    await expect(led.append({ ...base, supersedes: 'nope' })).rejects.toThrow();
   });
 });

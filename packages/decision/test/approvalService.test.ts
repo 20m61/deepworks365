@@ -53,4 +53,21 @@ describe('ApprovalService', () => {
     expect(d.state).toBe('unverified');
     expect(d.supersedes).toBe(c.id);
   });
+  it('reject は base state を維持し差戻し理由を残す', async () => {
+    const ledger = createInMemoryLedger(counter());
+    const svc = createApprovalService({ ledger, delivery: createFakeDelivery(), clock });
+    const c = await ledger.append({ ...agreement });
+    const r = await svc.reject(c.id, { approver: 'a', basis: '情報不足' });
+    expect(r.state).toBe('ai_inferred');
+    expect(r.approval?.basis).toContain('差戻し');
+    expect(r.supersedes).toBe(c.id);
+  });
+  it('approveWithConditions は conditions を記録する', async () => {
+    const ledger = createInMemoryLedger(counter());
+    const svc = createApprovalService({ ledger, delivery: createFakeDelivery(), clock });
+    const c = await ledger.append({ ...agreement });
+    const d = await svc.approveWithConditions(c.id, { approver: 'a', basis: 'ok', conditions: '要フォロー' });
+    expect(d.state).toBe('approved_decision');
+    expect(d.approval?.conditions).toBe('要フォロー');
+  });
 });

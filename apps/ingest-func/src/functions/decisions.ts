@@ -10,8 +10,8 @@ export function parseApproveRequest(id: string, body: unknown): ApproveParse {
   if (typeof body !== 'object' || body === null) return { ok: false, error: 'body must be an object' };
   const b = body as Record<string, unknown>;
   if (typeof b.approver !== 'string' || !b.approver.trim()) return { ok: false, error: 'approver required' };
-  const basis = typeof b.basis === 'string' ? b.basis : '';
-  return { ok: true, value: { id, approver: b.approver, basis } };
+  if (typeof b.basis !== 'string' || !b.basis.trim()) return { ok: false, error: 'basis required' };
+  return { ok: true, value: { id, approver: b.approver, basis: b.basis } };
 }
 
 export async function decisionsApproveHandler(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {

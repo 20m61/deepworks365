@@ -35,7 +35,7 @@
   - `OpenIssue { id; kind: 'issue'; text; basis; state; meetingId }`
   - `TaskCandidate { id; kind: 'task'; text; assigneeHint?; dueHint?; basis; state; meetingId }`
 - `Transcript { meetingId; title?; utterances: { id; speaker; text }[] }`
-- 台帳エントリ: `LedgerEntry { id; meetingId; kind; state; payload; basis; version; owner; recordedAt; supersedes? }`
+- 台帳エントリ: `LedgerEntry { id; meetingId; kind; state; payload; version; owner; recordedAt; supersedes? }`
 - 決定: `Decision`（`approved_decision` 状態のエントリ）に承認メタ `{ approver; approvedAt; basis; conditions? }`
 
 ### ports

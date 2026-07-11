@@ -12,4 +12,7 @@ describe('parseApproveRequest', () => {
   it('body が object でなければ拒否', () => {
     expect(parseApproveRequest('e1', null).ok).toBe(false);
   });
+  it('basis 欠落は拒否 (根拠必須)', () => {
+    expect(parseApproveRequest('e1', { approver: 'a@x' }).ok).toBe(false);
+  });
 });

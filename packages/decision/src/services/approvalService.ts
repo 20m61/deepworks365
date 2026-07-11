@@ -10,6 +10,11 @@ async function requireEntry(ledger: LedgerRepository, entryId: string): Promise<
   return e;
 }
 
+function requireApproval(input: ApproveInput): void {
+  if (!input.approver.trim()) throw new Error('approver is required (人間承認必須)');
+  if (!input.basis.trim()) throw new Error('basis is required (根拠必須 ルール7)');
+}
+
 export function createApprovalService(deps: ApprovalDeps) {
   const { ledger, delivery, clock } = deps;
 
@@ -23,7 +28,7 @@ export function createApprovalService(deps: ApprovalDeps) {
   }
 
   async function decide(entryId: string, input: ApproveInput, conditions?: string): Promise<LedgerEntry> {
-    if (!input.approver.trim()) throw new Error('approver is required (人間承認必須)');
+    requireApproval(input);
     const base = await requireEntry(ledger, entryId);
     if (base.kind === 'issue') throw new Error('issue は承認対象ではない');
     const approval: ApprovalMeta = { approver: input.approver, approvedAt: clock(), basis: input.basis, ...(conditions ? { conditions } : {}) };
@@ -38,13 +43,13 @@ export function createApprovalService(deps: ApprovalDeps) {
     approve: (entryId: string, input: ApproveInput) => decide(entryId, input),
     approveWithConditions: (entryId: string, input: ApproveInput & { conditions: string }) => decide(entryId, input, input.conditions),
     async reject(entryId: string, input: ApproveInput): Promise<LedgerEntry> {
-      if (!input.approver.trim()) throw new Error('approver is required');
+      requireApproval(input);
       const base = await requireEntry(ledger, entryId);
       // 差戻し: 元 state を据え置き、理由を approval.basis に残す新版。
       return appendVersion(base, base.state, { approver: input.approver, approvedAt: clock(), basis: `差戻し: ${input.basis}` });
     },
     async requestMoreInfo(entryId: string, input: ApproveInput): Promise<LedgerEntry> {
-      if (!input.approver.trim()) throw new Error('approver is required');
+      requireApproval(input);
       const base = await requireEntry(ledger, entryId);
       return appendVersion(base, 'unverified', { approver: input.approver, approvedAt: clock(), basis: `追加調査: ${input.basis}` });
     },

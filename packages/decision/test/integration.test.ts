@@ -30,9 +30,12 @@ describe('Meeting→Decision→Delivery 縦断', () => {
     await approvals.approve(taskEntry.id, { approver: 'alice@example.com', basis: 'ok' });
     expect(delivery.delivered.length).toBe(1);
 
-    // AI 経路では approved_decision が存在しないこと (ingest 直後)
-    const all = await ledger.getByMeeting('m1');
-    const aiDecisions = all.filter((e) => e.state === 'approved_decision' && !e.approval);
-    expect(aiDecisions.length).toBe(0);
+    // 直接 ledger 経由でも approved_decision を偽造できない (rule2,4 構造的強制)
+    await expect(
+      ledger.append({
+        meetingId: 'm1', kind: 'agreement', state: 'approved_decision',
+        payload: agreement.payload, owner: 'attacker', recordedAt: clock(),
+      }),
+    ).rejects.toThrow();
   });
 });
