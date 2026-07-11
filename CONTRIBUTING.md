@@ -18,6 +18,15 @@
 6. ローカルゲート（pre-commit）、GitGuardian、人間レビューを通す
 7. 段階リリースと観測計画を確認する
 
+## ブランチ保護とローカルゲート
+
+- `main` は Ruleset `main-protection` で保護される（PR 必須 / 必須チェック=GitGuardian /
+  force push・削除禁止 / 管理者は緊急時のみ bypass）。詳細と緊急手順は
+  [ブランチ保護とローカルゲート運用](docs/19-branch-protection.md) を参照。
+- push 時に pre-push ゲート（build / typecheck / test / Semgrep / osv-scanner / bicep）が
+  自動実行される。`--no-verify` での回避は禁止（`guard-destructive.sh` がブロックする）。
+- 初回導入は `./scripts/setup-dev.sh`、全 hook 実行は `make hooks`。
+
 ## Definition of Done
 
 - 受入条件を満たす
