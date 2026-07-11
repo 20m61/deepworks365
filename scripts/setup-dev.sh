@@ -28,6 +28,23 @@ if ! command -v osv-scanner >/dev/null 2>&1; then
   fi
 fi
 
+# bicep CLI (IaC 構文検証)。az 全体は Ventura で重いため standalone binary を優先。
+if ! command -v bicep >/dev/null 2>&1 && ! command -v az >/dev/null 2>&1; then
+  case "$(uname -s)/$(uname -m)" in
+    Darwin/arm64) asset=bicep-osx-arm64 ;;
+    Darwin/*)     asset=bicep-osx-x64 ;;
+    Linux/aarch64) asset=bicep-linux-arm64 ;;
+    Linux/*)      asset=bicep-linux-x64 ;;
+    *)            asset="" ;;
+  esac
+  if [ -n "$asset" ] && [ -d "$HOME/.local/bin" ]; then
+    if curl -fsSL -o "$HOME/.local/bin/bicep" \
+      "https://github.com/Azure/bicep/releases/latest/download/$asset"; then
+      chmod +x "$HOME/.local/bin/bicep"
+    fi
+  fi
+fi
+
 # git フックを登録 (pre-commit + pre-push)。
 if command -v pre-commit >/dev/null 2>&1; then
   pre-commit install --install-hooks

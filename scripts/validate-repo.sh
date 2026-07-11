@@ -18,8 +18,10 @@ else
   echo "pre-commit not installed; skipping linters. Run scripts/setup-dev.sh"
 fi
 
-# Bicep はファイル単位でなく成果物ビルドのためここで実行 (az がある場合のみ)。
-if command -v az >/dev/null 2>&1; then
+# Bicep 成果物ビルド (standalone bicep 優先、無ければ az bicep)。
+if command -v bicep >/dev/null 2>&1; then
+  bicep build infra/main.bicep --stdout >/dev/null
+elif command -v az >/dev/null 2>&1; then
   az bicep build --file infra/main.bicep --stdout >/dev/null
 fi
 
