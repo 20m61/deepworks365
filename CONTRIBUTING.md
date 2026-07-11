@@ -13,9 +13,9 @@
 1. Issueを選び、必要なら設計コメントを追加する
 2. ブランチを作成する: `feat/<issue>-short-name`
 3. テストとドキュメントを同時に更新する
-4. `make validate` と `make security` を実行する
+4. `make validate` と `make security` を実行する（pre-commit / pre-push フックでも自動実行される）
 5. Draft PRを作成し、差分・リスク・検証結果を記載する
-6. CI、セキュリティゲート、人間レビューを通す
+6. ローカルゲート（pre-commit）、GitGuardian、人間レビューを通す
 7. 段階リリースと観測計画を確認する
 
 ## Definition of Done

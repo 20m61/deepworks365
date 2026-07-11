@@ -1,7 +1,10 @@
-.PHONY: validate security bicep issues-dry-run setup
+.PHONY: validate security bicep hooks issues-dry-run setup
 
 setup:
 	./scripts/setup-dev.sh
+
+hooks:
+	pre-commit run --all-files
 
 validate:
 	./scripts/validate-repo.sh

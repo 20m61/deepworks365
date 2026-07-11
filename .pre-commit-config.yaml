@@ -1,0 +1,53 @@
+# GitHub Actions 非依存のローカルゲート。
+# 導入:   scripts/setup-dev.sh  (pre-commit install + --hook-type pre-push)
+# 全実行: make hooks            (pre-commit run --all-files)
+minimum_pre_commit_version: "3.5.0"
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  # --- commit 段階: 速い・自動修正できる衛生チェック ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-added-large-files
+      - id: detect-private-key
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.44.0
+    hooks:
+      - id: markdownlint
+        args: [--config, .markdownlint.json, --fix]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-d, "{extends: relaxed, rules: {line-length: disable}}"]
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+
+  # --- pre-push 段階: 重いセキュリティ検査 ---
+  - repo: local
+    hooks:
+      - id: security-scan
+        name: security scan (semgrep + osv-scanner)
+        entry: scripts/run-security.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-push]
+      - id: bicep-build
+        name: bicep build (az がある場合のみ)
+        entry: bash -c 'command -v az >/dev/null 2>&1 && az bicep build --file infra/main.bicep --stdout >/dev/null || echo "az 未導入のためスキップ"'
+        language: system
+        pass_filenames: false
+        files: '^infra/.*\.bicep$'
+        stages: [pre-push]

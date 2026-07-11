@@ -18,7 +18,9 @@
 - Purviewラベル、DLP、保持、監査
 - API Management、Private Endpoint、入力検証
 - 人間承認、二人承認、PIM
-- Semgrep、CodeQL、Dependency Review、ZAP、SBOM
+- Semgrep（ローカルSAST）、osv-scanner（依存監査）、GitGuardian（秘密検知/PR App）、SBOM
+- ローカルゲートは pre-commit（commit/pre-push）で強制し、GitHub Actions に依存しない
+- ZAPは稼働環境向けに手動DAST、CodeQL/OpenSSF Scorecardは撤退（[ADR](superpowers/specs/2026-07-11-de-github-actions-design.md)）
 - すべての重要操作を共通Trace IDで関連付ける
 
 ## Secure SDLC
