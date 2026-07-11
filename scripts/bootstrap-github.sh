@@ -24,8 +24,21 @@ else
 fi
 
 GITHUB_OWNER="$OWNER" GITHUB_REPO="$REPO_NAME" ./scripts/create-labels.sh
-GITHUB_OWNER="$OWNER" ./scripts/create-project.sh
+
+project_available=1
+if ! GITHUB_OWNER="$OWNER" ./scripts/create-project.sh; then
+  project_available=0
+  echo "WARNING: GitHub Projectの作成をスキップしました。Issue作成は継続します。" >&2
+  echo "Projectを利用する場合は次を実行してください:" >&2
+  echo "  gh auth refresh -s project,read:project" >&2
+  echo "  GITHUB_OWNER=$OWNER ./scripts/create-project.sh" >&2
+fi
+
 GITHUB_OWNER="$OWNER" GITHUB_REPO="$REPO_NAME" ./scripts/create-issues.sh
 
 echo "Repository: https://github.com/$REPO"
-echo "Project: https://github.com/users/$OWNER/projects"
+if [[ "$project_available" == "1" ]]; then
+  echo "Project: https://github.com/users/$OWNER/projects"
+else
+  echo "Project: not created (see warning above)"
+fi
