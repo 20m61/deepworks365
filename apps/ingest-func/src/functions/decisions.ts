@@ -14,17 +14,19 @@ export function parseApproveRequest(id: string, body: unknown): ApproveParse {
   return { ok: true, value: { id, approver: b.approver, basis } };
 }
 
-export async function decisionsApproveHandler(
-  req: HttpRequest,
-  _ctx: InvocationContext,
-): Promise<HttpResponseInit> {
+export async function decisionsApproveHandler(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {
   const id = req.params.id ?? '';
   const parsed = parseApproveRequest(id, await req.json().catch(() => null));
   if (!parsed.ok) return { status: 400, jsonBody: { error: parsed.error } };
-  const { approvals } = buildDecisionServices();
-  const decision = await approvals.approve(parsed.value.id, {
-    approver: parsed.value.approver,
-    basis: parsed.value.basis,
-  });
-  return { status: 200, jsonBody: decision };
+  try {
+    const { approvals } = buildDecisionServices();
+    const decision = await approvals.approve(parsed.value.id, { approver: parsed.value.approver, basis: parsed.value.basis });
+    ctx.log(`approved ledger entry ${parsed.value.id}`); // approver はPII のためログしない (ルール10)
+    return { status: 200, jsonBody: decision };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'approval failed';
+    ctx.error(`approve failed for entry ${id}: ${message}`);
+    const status = message.includes('not found') ? 404 : 409;
+    return { status, jsonBody: { error: message } };
+  }
 }

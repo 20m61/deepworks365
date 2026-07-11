@@ -1,4 +1,4 @@
-.PHONY: validate security bicep hooks issues-dry-run setup typecheck test
+.PHONY: validate security bicep hooks issues-dry-run setup typecheck test build
 
 setup:
 	./scripts/setup-dev.sh
@@ -19,6 +19,9 @@ bicep:
 
 issues-dry-run:
 	DRY_RUN=1 ./scripts/create-issues.sh
+
+build:
+	pnpm -r build
 
 typecheck:
 	pnpm -r typecheck

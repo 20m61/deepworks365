@@ -38,6 +38,12 @@ repos:
   # --- pre-push 段階: 型チェック・テスト・セキュリティ検査 ---
   - repo: local
     hooks:
+      - id: workspace-build
+        name: pnpm -r build (deps first)
+        entry: pnpm -r build
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
       - id: typecheck
         name: pnpm typecheck
         entry: pnpm -r typecheck
