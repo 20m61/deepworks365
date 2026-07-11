@@ -11,10 +11,18 @@ GitHub Actions 非依存（[ADR](superpowers/specs/2026-07-11-de-github-actions-
 
 | ルール | 設定 | 目的 |
 |---|---|---|
-| Pull request 必須 | 承認 0 件・レビュースレッド解決必須 | 直接 push を防ぐ。ソロ運用でも自己マージ可能に保ちつつ、未解決の指摘を残さない |
+| Pull request 必須 | 承認 0 件 | 直接 push を防ぐ。ソロ運用でも自己マージ可能に保つ |
 | 必須ステータスチェック | `GitGuardian Security Checks` のみ | 秘密混入を PR でブロック（Actions チェックは存在しない） |
 | Force push 禁止 | `non_fast_forward` | 履歴改ざん・巻き戻しを防ぐ |
 | ブランチ削除禁止 | `deletion` | `main` の誤削除を防ぐ |
+
+> **設計判断（会話解決必須をオフにした理由）**: `required_review_thread_resolution: true` を
+> `required_approving_review_count: 0`（ソロ運用の自己マージ許容）と併用すると、GitHub は
+> 必須チェックが success でもすべての PR を `BLOCKED` と評価し、非 admin では一切マージ
+> できなくなる（既知挙動）。ソロ運用では承認レビュアが不在で会話解決の担保者もいないため、
+> 本 Ruleset では会話解決必須を **オフ**にし、代わりに **人間（管理者）が Merge を実行する行為**
+> をレビュー承認とみなす。将来レビュアを追加する場合は `required_approving_review_count>=1`
+> とセットで再有効化する。
 
 ### 管理者バイパス方針と緊急手順
 
