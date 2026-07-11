@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-REPO="${GITHUB_OWNER:-20m61}/${GITHUB_REPO:-deep-work}"
+REPO="${GITHUB_OWNER:-20m61}/${GITHUB_REPO:-deepworks365}"
 labels=(
   'status:triage|d4c5f9|未整理'
   'status:ready|0e8a16|着手可能'
