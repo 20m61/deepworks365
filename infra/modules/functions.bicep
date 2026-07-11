@@ -92,6 +92,10 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
         { name: 'SERVICE_BUS_QUEUE', value: queueName }
         { name: 'ServiceBusConnection__fullyQualifiedNamespace', value: '${sb.name}.servicebus.windows.net' }
         { name: 'AzureWebJobsStorage__accountName', value: storage.name }
+        // 意思決定台帳の保存先。/home はストレージアカウント裏付け (SSE暗号化・アクセス制御) の
+        // 永続領域。/tmp への平文PII保存を避ける暫定措置 (非交渉ルール10)。
+        // 本番の目標はDB台帳アダプタ (Azure Table/SQL) への移行 — backlog/issues/026.md。
+        { name: 'LEDGER_PATH', value: '/home/data/oip-ledger.jsonl' }
       ]
     }
   }

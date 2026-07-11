@@ -51,7 +51,12 @@ export async function onEventHandler(
   if (transcript) {
     // AI は候補抽出まで。決定は人間承認 API 経由でのみ行われる (非交渉ルール2)。
     const { ingest } = buildDecisionServices();
-    const { entries } = await ingest.ingest(transcript);
-    ctx.log(`ingested ${entries.length} candidates for meeting ${transcript.meetingId}`);
+    const { entries, deduped } = await ingest.ingest(transcript);
+    if (deduped) {
+      // 非交渉ルール9: 再配信は取り込み済みとして冪等に無視する。
+      ctx.log(`meeting ${transcript.meetingId} already ingested (${entries.length} entries) — dedup, skipped`);
+    } else {
+      ctx.log(`ingested ${entries.length} candidates for meeting ${transcript.meetingId}`);
+    }
   }
 }
