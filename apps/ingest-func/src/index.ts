@@ -21,9 +21,11 @@ app.serviceBusQueue('onEvent', {
   handler: onEventHandler,
 });
 
+// authLevel は多層防御。実際の承認者束縛は Easy Auth (x-ms-client-principal-id) で行う。
+// 非交渉ルール2,4: 匿名承認を許さない。
 app.http('decisions-approve', {
   methods: ['POST'],
-  authLevel: 'anonymous',
+  authLevel: 'function',
   route: 'decisions/{id}/approve',
   handler: decisionsApproveHandler,
 });

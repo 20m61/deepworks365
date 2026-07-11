@@ -62,6 +62,15 @@ describe('ApprovalService', () => {
     expect(r.approval?.basis).toContain('差戻し');
     expect(r.supersedes).toBe(c.id);
   });
+  it('supersede済み(旧版)への再承認を構造的に拒否する (非交渉ルール7: 最新版以外を承認しない)', async () => {
+    const ledger = createInMemoryLedger(counter());
+    const svc = createApprovalService({ ledger, delivery: createFakeDelivery(), clock });
+    const c = await ledger.append({ ...agreement });
+    await svc.approve(c.id, { approver: 'alice', basis: 'x' }); // c は approved_decision へ繰り上がる
+    // 旧版 c への二重承認は拒否される。
+    await expect(svc.approve(c.id, { approver: 'bob', basis: 'y' })).rejects.toThrow(/最新版/);
+  });
+
   it('approveWithConditions は conditions を記録する', async () => {
     const ledger = createInMemoryLedger(counter());
     const svc = createApprovalService({ ledger, delivery: createFakeDelivery(), clock });

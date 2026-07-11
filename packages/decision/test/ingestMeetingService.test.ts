@@ -18,4 +18,16 @@ describe('IngestMeetingService', () => {
     expect(entries.every((e) => e.recordedAt === '2026-07-11T00:00:00.000Z')).toBe(true);
     expect((await ledger.getByMeeting('m1')).length).toBe(4);
   });
+
+  it('同一 transcript の二重取り込みで台帳エントリを重複生成しない (冪等: 非交渉ルール9)', async () => {
+    const ledger = createInMemoryLedger(counter());
+    const svc = createIngestMeetingService({ extract: markerExtractor, ledger, clock });
+    const first = await svc.ingest(sampleTranscript);
+    const second = await svc.ingest(sampleTranscript);
+    expect(first.deduped).toBe(false);
+    expect(second.deduped).toBe(true);
+    // Service Bus 再配信で二度取り込んでも meetingId 単位で重複しない。
+    expect((await ledger.getByMeeting('m1')).length).toBe(4);
+    expect(second.entries.length).toBe(4); // 既存分を返す
+  });
 });

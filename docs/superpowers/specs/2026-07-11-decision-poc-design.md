@@ -66,16 +66,17 @@
 
 ## `apps/ingest-func` への薄い配線
 
-- `onEvent`（Service Bus `meeting.ended`）: payload の transcript 参照 → `IngestMeetingService.ingest`（fake extractor ＋ JSON 台帳 adapter）。ハンドラは純粋 delegator。
-- 新 HTTP 関数 `decisions`: `POST /api/decisions/{id}/approve`（body: approver/basis）→ `ApprovalService.approve`。delegator。
-- 依存は index.ts で組立（fake/adapter を注入）。実 Foundry/Planner adapter はスタブのまま。
+- `onEvent`（Service Bus `meeting.ended`）: payload の transcript 参照 → `IngestMeetingService.ingest`（fake extractor ＋ JSON 台帳 adapter）。ハンドラは純粋 delegator。再配信に対し `meetingId` 単位で冪等（取り込み済みは dedup してスキップ、非交渉ルール9）。
+- 新 HTTP 関数 `decisions`: `POST /api/decisions/{id}/approve`（`authLevel: function`）→ `ApprovalService.approve`。承認者は Easy Auth の `x-ms-client-principal-id`（Entra oid）へ束縛し、body の自己申告 `approver` は信頼しない（非交渉ルール2,4）。body から取るのは `basis` のみ。認証コンテキスト無しは 401。
+- 依存は index.ts で組立（fake/adapter を注入）。実 Foundry/Planner adapter はスタブのまま。保存先 `LEDGER_PATH` は fail-closed（未設定なら PII を `/tmp` へ書かず起動拒否、非交渉ルール10）。infra は `/home`（ストレージ裏付け・SSE暗号化）を暫定指定。
 
 ## テスト戦略（TDD）
 
 - 抽出 fake: fixture transcript → 期待候補（種別/basis/state）を検証。
 - 台帳: in-memory + JSON adapter の append/version/supersedes/getByMeeting。
-- `IngestMeetingService`: 抽出→台帳追記、state=`ai_inferred`、決定を作らないこと。
-- `ApprovalService`: approve→`approved_decision` 新版＋承認メタ＋traceability。reject/conditions/moreInfo。**境界: AI/サービス外から `approved_decision` を作れないこと**。承認タスク→delivery 記録。
+- `IngestMeetingService`: 抽出→台帳追記、state=`ai_inferred`、決定を作らないこと。二重取り込みで重複を生成しない冪等性。
+- `ApprovalService`: approve→`approved_decision` 新版＋承認メタ＋traceability。reject/conditions/moreInfo。**境界: AI/サービス外から `approved_decision` を作れないこと**。承認タスク→delivery 記録。supersede済み旧版への再承認を拒否（最新版ガード）。
+- ハンドラ認証境界: `extractApprover`（Easy Auth ヘッダーのみ参照・自己申告拒否）、`parseApproveBody`（basis のみ）、`buildDecisionServices` の fail-closed。
 - `ReviewPacket`: 三層データと operations の組立。
 - 統合: transcript → ingest → review → approve → decision（＋task delivery）を in-memory で end-to-end。
 - ハンドラ delegator は純粋関数として検証（Functions ランタイム非依存）。

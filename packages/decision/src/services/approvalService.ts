@@ -10,6 +10,15 @@ async function requireEntry(ledger: LedgerRepository, entryId: string): Promise<
   return e;
 }
 
+// 非交渉ルール7: 既に新版へ繰り上がった (supersede済みの) エントリへの操作を拒否する。
+// 最新版以外への approve/reject を構造的に防ぎ、二重承認・古い版の決定化を止める。
+async function requireHead(ledger: LedgerRepository, base: LedgerEntry): Promise<void> {
+  const siblings = await ledger.getByMeeting(base.meetingId);
+  if (siblings.some((e) => e.supersedes === base.id)) {
+    throw new Error(`entry ${base.id} は既に新版へ繰り上がっている: 最新版以外は承認・操作できない`);
+  }
+}
+
 function requireApproval(input: ApproveInput): void {
   if (!input.approver.trim()) throw new Error('approver is required (人間承認必須)');
   if (!input.basis.trim()) throw new Error('basis is required (根拠必須 ルール7)');
@@ -30,6 +39,7 @@ export function createApprovalService(deps: ApprovalDeps) {
   async function decide(entryId: string, input: ApproveInput, conditions?: string): Promise<LedgerEntry> {
     requireApproval(input);
     const base = await requireEntry(ledger, entryId);
+    await requireHead(ledger, base);
     if (base.kind === 'issue') throw new Error('issue は承認対象ではない');
     const approval: ApprovalMeta = { approver: input.approver, approvedAt: clock(), basis: input.basis, ...(conditions ? { conditions } : {}) };
     if (base.kind === 'task') {
@@ -45,12 +55,14 @@ export function createApprovalService(deps: ApprovalDeps) {
     async reject(entryId: string, input: ApproveInput): Promise<LedgerEntry> {
       requireApproval(input);
       const base = await requireEntry(ledger, entryId);
+      await requireHead(ledger, base);
       // 差戻し: 元 state を据え置き、理由を approval.basis に残す新版。
       return appendVersion(base, base.state, { approver: input.approver, approvedAt: clock(), basis: `差戻し: ${input.basis}` });
     },
     async requestMoreInfo(entryId: string, input: ApproveInput): Promise<LedgerEntry> {
       requireApproval(input);
       const base = await requireEntry(ledger, entryId);
+      await requireHead(ledger, base);
       return appendVersion(base, 'unverified', { approver: input.approver, approvedAt: clock(), basis: `追加調査: ${input.basis}` });
     },
   };
