@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 OWNER="${GITHUB_OWNER:-20m61}"
-REPO_NAME="${GITHUB_REPO:-deep-work}"
+REPO_NAME="${GITHUB_REPO:-deepworks365}"
 REPO="$OWNER/$REPO_NAME"
 DESCRIPTION="Microsoft 365 / Entra ID / Azure based organizational intelligence and decision platform"
 
