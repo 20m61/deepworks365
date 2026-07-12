@@ -28,8 +28,13 @@
 3. `apps/ingest-func/src/composition.ts` — `LEDGER_TABLE` 配線（fail-closed 維持）
 4. infra Bicep — Table サービス/テーブル資源 ＋ Function MI へ Storage Table Data Contributor
 
-**スコープ外（後続）**: Azurite への実接続統合テスト、`basis` のフィールドレベル暗号化、
-per-meeting マーカーによる ingest 冪等の storage 層原子化、二次索引による `get(id)` 最適化。
+**スコープ外（後続）**: `basis` のフィールドレベル暗号化、per-meeting マーカーによる
+ingest 冪等の storage 層原子化、二次索引による `get(id)` 最適化。
+
+> **追記（実装済み）**: Azurite への実接続統合テストは本スライスに含めた
+> （`apps/ingest-func/test/azureTableClient.integration.test.ts`、`AZURITE_TABLE_TEST=1` で
+> 明示実行・既定ゲートではスキップ）。shim の実 `@azure/data-tables` マッピングと ETag
+> トランザクションの並行 412（rule7）を実 Azurite で検証済み。
 
 ## アーキテクチャ
 
@@ -97,8 +102,9 @@ insert し approved_decision が2版生成されうる（サービス層 `requir
 - **並行テスト**: 同一 base への2 supersede を fake の ETag 競合で再現し、後発が 412→throw を検証。
 - **composition テスト**: `LEDGER_TABLE` 設定時に tableLedger 選択、未設定は fail-closed。
 - infra は `make bicep` で構文検証。
-- **fake の限界を明示**: fake は仮定した Table セマンティクスの符号化であり、実 Azurite/Azure との
-  差異検証は後続の Azurite 統合テストに委ねる旨をテストと本 spec に注記する（誤った安心を避ける）。
+- **fake の限界と実検証**: fake は仮定した Table セマンティクスの符号化。実 Azurite での差異検証は
+  gated 統合テスト（`AZURITE_TABLE_TEST=1`）で実施済み — shim の SDK マッピングと ETag
+  トランザクションの並行 412 を実 storage で実証する（fake だけによる誤った安心を避ける）。
 
 ## エラー処理
 
