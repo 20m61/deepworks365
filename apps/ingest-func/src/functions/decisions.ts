@@ -21,6 +21,21 @@ export function parseApproveBody(body: unknown): ApproveBodyParse {
   return { ok: true, value: { basis: b.basis } };
 }
 
+// approve 失敗時の HTTP ステータス分類 (純関数)。
+// 未知/インフラ障害 (throttling・認証・DNS等の SDK リトライ後失敗) を 409 (Conflict) へ丸めない。
+// retry層は 409 を「終端」と扱うため、誤分類はリトライを阻害する。
+export function approveErrorStatus(message: string): number {
+  if (message.includes('not found')) return 404;
+  if (
+    message.includes('no longer head') ||
+    message.includes('繰り上が') || // requireHead: "既に新版へ繰り上がっている"
+    message.includes('承認対象ではない') // issue not approvable
+  ) {
+    return 409;
+  }
+  return 500;
+}
+
 export async function decisionsApproveHandler(req: HttpRequest, ctx: InvocationContext): Promise<HttpResponseInit> {
   const id = req.params.id ?? '';
   // 認証済み呼び出し元にのみ承認を許す (匿名 approve を拒否)。
@@ -36,7 +51,7 @@ export async function decisionsApproveHandler(req: HttpRequest, ctx: InvocationC
   } catch (err) {
     const message = err instanceof Error ? err.message : 'approval failed';
     ctx.error(`approve failed for entry ${id}: ${message}`);
-    const status = message.includes('not found') ? 404 : 409;
+    const status = approveErrorStatus(message);
     return { status, jsonBody: { error: message } };
   }
 }
