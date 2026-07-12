@@ -24,8 +24,16 @@ export function resolveLedgerKind(env: NodeJS.ProcessEnv): LedgerKind {
   throw new Error('LEDGER_TABLE or LEDGER_PATH is not configured: refuse to persist approval PII to an insecure default');
 }
 
-export function buildDecisionServices(env: NodeJS.ProcessEnv = process.env) {
-  const cfg = resolveLedgerKind(env);
+export type DecisionServices = {
+  ingest: ReturnType<typeof createIngestMeetingService>;
+  approvals: ReturnType<typeof createApprovalService>;
+};
+
+// Azure Functions のベストプラクティス: TableClient と DefaultAzureCredential(トークンキャッシュ)は
+// リクエスト毎に作り直さず、インスタンス内で再利用する。解決済み設定単位でサービスをメモ化する。
+const servicesCache = new Map<string, DecisionServices>();
+
+function createDecisionServices(env: NodeJS.ProcessEnv, cfg: LedgerKind): DecisionServices {
   const ledger: LedgerRepository = cfg.kind === 'table'
     ? createTableLedger(createAzureTableClient(cfg.table, env), idgen)
     : createJsonFileLedger(cfg.path, idgen);
@@ -34,4 +42,15 @@ export function buildDecisionServices(env: NodeJS.ProcessEnv = process.env) {
     ingest: createIngestMeetingService({ extract: markerExtractor, ledger, clock }),
     approvals: createApprovalService({ ledger, delivery, clock }),
   };
+}
+
+export function buildDecisionServices(env: NodeJS.ProcessEnv = process.env): DecisionServices {
+  const cfg = resolveLedgerKind(env); // 未設定はここで fail-closed (キャッシュ前)
+  const key = JSON.stringify(cfg);
+  let services = servicesCache.get(key);
+  if (!services) {
+    services = createDecisionServices(env, cfg);
+    servicesCache.set(key, services);
+  }
+  return services;
 }
