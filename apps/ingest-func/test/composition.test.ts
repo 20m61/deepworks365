@@ -22,4 +22,13 @@ describe('buildDecisionServices', () => {
   it('未設定は fail-closed', () => {
     expect(() => buildDecisionServices({})).toThrow(/LEDGER_TABLE|LEDGER_PATH/);
   });
+  it('同一設定では同じサービス実体を再利用する (TableClient/credential をリクエスト間で共有)', () => {
+    const env = { LEDGER_PATH: '/tmp/reuse-oip-ledger.jsonl' };
+    expect(buildDecisionServices(env)).toBe(buildDecisionServices(env));
+  });
+  it('設定が異なれば別実体を構築する', () => {
+    const a = buildDecisionServices({ LEDGER_PATH: '/tmp/reuse-a.jsonl' });
+    const b = buildDecisionServices({ LEDGER_PATH: '/tmp/reuse-b.jsonl' });
+    expect(a).not.toBe(b);
+  });
 });
