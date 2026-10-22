@@ -93,7 +93,7 @@ resource site 'Microsoft.Web/sites@2024-04-01' = {
         }
       }
       scaleAndConcurrency: { maximumInstanceCount: 40, instanceMemoryMB: 2048 }
-      runtime: { name: 'node', version: '20' }
+      runtime: { name: 'node', version: '22' }
     }
     siteConfig: {
       appSettings: [
